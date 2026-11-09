@@ -1,0 +1,51 @@
+table Presupuesto
+	lineageTag: ba982dbb-d5bf-4642-8413-9a4fb357c179
+
+	column Presupuesto
+		dataType: double
+		formatString: 0.00
+		lineageTag: b3a207da-9948-4a37-a273-3aaff8a6a62f
+		summarizeBy: sum
+		sourceColumn: Presupuesto
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 6dfbdc01-b150-4df1-a86b-c33fed4091ee
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	partition Presupuesto = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents("C:\Villi\1. GitHub\sales-vs-budget-powerbi\Presupuesto_anonimizado.xlsx"), null, true),
+				    Proyectado_Sheet = Origen{[Item="Proyectado",Kind="Sheet"]}[Data],
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Proyectado_Sheet,{{"Column1", type text}, {"Column2", type any}, {"Column3", type any}, {"Column4", type any}, {"Column5", type any}, {"Column6", type any}, {"Column7", type any}, {"Column8", type any}, {"Column9", type any}, {"Column10", type any}}),
+				    #"Filas en blanco eliminadas" = Table.SelectRows(#"Tipo cambiado", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+				    #"Filas filtradas" = Table.SelectRows(#"Filas en blanco eliminadas", each ([Column1] <> "MES" and [Column1] <> "TOTAL" and [Column1] <> null)),
+				    #"Otras columnas quitadas" = Table.SelectColumns(#"Filas filtradas",{"Column9", "Column8", "Column7", "Column6", "Column5", "Column4", "Column3", "Column2", "Column1"}),
+				    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Otras columnas quitadas",{{"Column1", "Mes"}, {"Column2", "2019"}, {"Column3", "2020"}, {"Column4", "2021"}, {"Column5", "2022"}, {"Column6", "2023"}, {"Column7", "2024"}, {"Column8", "2025"}, {"Column9", "2026"}}),
+				    #"Otras columnas con anulación de dinamización" = Table.UnpivotOtherColumns(#"Columnas con nombre cambiado", {"Mes"}, "Atributo", "Valor"),
+				    #"Columnas con nombre cambiado1" = Table.RenameColumns(#"Otras columnas con anulación de dinamización",{{"Atributo", "Año"}}),
+				    #"Tipo cambiado1" = Table.TransformColumnTypes(#"Columnas con nombre cambiado1",{{"Año", Int64.Type}}),
+				    #"Columnas con nombre cambiado2" = Table.RenameColumns(#"Tipo cambiado1",{{"Valor", "Presupuesto"}}),
+				    #"Personalizada agregada" = Table.AddColumn(#"Columnas con nombre cambiado2", "MesNum", each List.PositionOf({"ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"}, Text.Upper(Text.Trim([Mes]))) + 1),
+				    #"Personalizada agregada1" = Table.AddColumn(#"Personalizada agregada", "Fecha", each #date([Año], [MesNum], 1)),
+				    #"Otras columnas quitadas1" = Table.SelectColumns(#"Personalizada agregada1",{"Presupuesto", "Fecha"}),
+				    #"Tipo cambiado2" = Table.TransformColumnTypes(#"Otras columnas quitadas1",{{"Presupuesto", type number}, {"Fecha", type date}})
+				in
+				    #"Tipo cambiado2"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

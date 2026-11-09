@@ -1,0 +1,50 @@
+table INPC
+	lineageTag: ee3f3693-76d4-4139-a613-5f6151dd800d
+
+	column INPC
+		dataType: double
+		lineageTag: 2b41ad18-1ce5-4ed2-b612-909c6cc523a5
+		summarizeBy: sum
+		sourceColumn: INPC
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Fecha
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 4f9a57fd-035e-464a-86c2-2de59c2b3aaa
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition INPC = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents("C:\Villi\Infalción a 2019.xlsx"), null, true),
+				    Inflación_Sheet = Origen{[Item="Inflación",Kind="Sheet"]}[Data],
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Inflación_Sheet,{{"Column1", type text}, {"Column2", type number}, {"Column3", type number}, {"Column4", type number}, {"Column5", type number}, {"Column6", type number}, {"Column7", type number}, {"Column8", type number}, {"Column9", type number}, {"Column10", type any}, {"Column11", Int64.Type}, {"Column12", type number}, {"Column13", type number}, {"Column14", type number}, {"Column15", type number}, {"Column16", type number}, {"Column17", type number}, {"Column18", type number}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Column10", "Column11", "Column12", "Column13", "Column14", "Column15", "Column16", "Column17", "Column18"}),
+				    #"Encabezados promovidos" = Table.PromoteHeaders(#"Columnas quitadas", [PromoteAllScalars=true]),
+				    #"Tipo cambiado1" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"Fecha", type text}, {"2019", type number}, {"2020", type number}, {"2021", type number}, {"2022", type number}, {"2023", type number}, {"2024", type number}, {"2025", type number}, {"2026", type number}}),
+				    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Tipo cambiado1",{{"Fecha", "Mes"}}),
+				    #"Otras columnas con anulación de dinamización" = Table.UnpivotOtherColumns(#"Columnas con nombre cambiado", {"Mes"}, "Atributo", "Valor"),
+				    #"Columnas con nombre cambiado1" = Table.RenameColumns(#"Otras columnas con anulación de dinamización",{{"Atributo", "Año"}, {"Valor", "INPC"}}),
+				    #"Personalizada agregada" = Table.AddColumn(#"Columnas con nombre cambiado1", "MesNum", each List.PositionOf({"ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"}, Text.Upper(Text.Trim([Mes]))) + 1),
+				    #"Tipo cambiado2" = Table.TransformColumnTypes(#"Personalizada agregada",{{"Año", Int64.Type}, {"MesNum", Int64.Type}}),
+				    #"Personalizada agregada1" = Table.AddColumn(#"Tipo cambiado2", "Fecha", each #date([Año], [MesNum], 1)),
+				    #"Columnas quitadas1" = Table.RemoveColumns(#"Personalizada agregada1",{"Mes", "MesNum"}),
+				    #"Tipo cambiado3" = Table.TransformColumnTypes(#"Columnas quitadas1",{{"Fecha", type date}}),
+				    #"Columnas quitadas2" = Table.RemoveColumns(#"Tipo cambiado3",{"Año"})
+				in
+				    #"Columnas quitadas2"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

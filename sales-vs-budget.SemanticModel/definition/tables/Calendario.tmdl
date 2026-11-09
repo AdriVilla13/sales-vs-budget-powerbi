@@ -1,0 +1,88 @@
+table Calendario
+	lineageTag: bd426cdd-cfc2-44d2-91ad-8b1e04c5f424
+	dataCategory: Time
+
+	column Fecha
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: 666e87c0-6f17-4716-bbb0-6e1382325b6f
+		summarizeBy: none
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Año
+		formatString: 0
+		lineageTag: a7eb06cd-06ea-45e2-9290-1f8f310f3fc7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Año]
+
+		annotation SummarizationSetBy = User
+
+	column MesNum
+		formatString: 0
+		lineageTag: b46eb57d-e18c-44dd-bc19-820066568f84
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MesNum]
+
+		annotation SummarizationSetBy = User
+
+	column Mes
+		lineageTag: 94e86b35-19d6-4f47-84ca-0bd2ba8a7373
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mes]
+		sortByColumn: MesNum
+
+		annotation SummarizationSetBy = Automatic
+
+	column AñoMes
+		lineageTag: db0f0a8b-cb8c-4176-854e-29fc7b1cfff5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [AñoMes]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesDia = MONTH(Calendario[Fecha]) * 100 + DAY(Calendario[Fecha])
+		formatString: 0
+		lineageTag: 4aa86b81-dc3f-479c-a9c6-a36e44d65554
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiaNum = WEEKDAY(Calendario[Fecha], 2)
+		formatString: 0
+		lineageTag: 180d6b53-b9ca-4894-a445-899ba986c884
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia = FORMAT(Calendario[Fecha], "dddd")
+		lineageTag: c444a335-ef73-414d-8a02-3929e11e19f6
+		summarizeBy: none
+		sortByColumn: DiaNum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calendario = calculated
+		mode: import
+		source =
+				
+				ADDCOLUMNS(
+				    CALENDAR(DATE(2019, 1, 1),
+				    DATE(YEAR(MAX(MAX(Ventas[Fecha]), MAX(Presupuesto[Fecha]))), 12, 31)),
+				    "Año", YEAR([Date]),
+				    "MesNum", MONTH([Date]),
+				    "Mes", FORMAT([Date], "mmm"),
+				    "AñoMes", FORMAT([Date], "yyyy-mm")
+				)
+
+	annotation PBI_Id = b4707daaca9b4fbe8d903f73cfab1612
+

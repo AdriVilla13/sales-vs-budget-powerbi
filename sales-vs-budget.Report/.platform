@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "sales-vs-budget"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "734f6b5d-5900-443c-8669-9be8aba64089"
+  }
+}

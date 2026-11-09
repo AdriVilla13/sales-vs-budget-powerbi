@@ -1,0 +1,26 @@
+table Turnos
+	lineageTag: 61266f4c-d750-4d20-805c-91e44ddcc2e5
+
+	column Turno
+		dataType: string
+		lineageTag: da2ee144-6d21-4db1-af5e-0da93da3e45e
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Turnos = m
+		mode: import
+		source =
+				let
+				    Origen = Ventas,
+				    #"Otras columnas quitadas" = Table.SelectColumns(Origen,{"Turno"}),
+				    #"Duplicados quitados" = Table.Distinct(#"Otras columnas quitadas"),
+				    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Duplicados quitados",{{"Turno", "Turno"}})
+				in
+				    #"Columnas con nombre cambiado"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,506 @@
+table Medidas
+	lineageTag: dd55452b-512f-432b-ba5e-fee46d277f58
+
+	measure Ventas = SUM(Ventas[Venta])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 1ac0b8b4-90b8-475f-86f7-91f4b46cd211
+
+	measure Clientes = SUM(Ventas[Clientes])
+		formatString: 0
+		lineageTag: c84b14a0-2948-452f-911c-9ca71f5ba5b6
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Ticket promedio' =
+			
+			DIVIDE(
+			    CALCULATE([Ventas], KEEPFILTERS(Canales[Canal] IN {"Salón", "Mostrador"})),
+			    [Clientes]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 6741da1f-fa31-41a0-b203-660a1f119f65
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-US"}
+
+	measure Presupuesto = SUM(Presupuesto[Presupuesto])
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 55671851-4532-4cc9-bda5-7152e4b00735
+
+	measure 'Presupuesto a la fecha' =
+			
+			VAR UltimaVenta = CALCULATE(MAX(Ventas[Fecha]), ALL(Ventas))
+			RETURN
+			    CALCULATE([Presupuesto], KEEPFILTERS(Calendario[Fecha] <= UltimaVenta))
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: 5e2a2c12-930b-4195-b830-eb157a6e8422
+
+	measure '% Cumplimiento' = DIVIDE([Ventas], [Presupuesto a la fecha])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 0de97cc5-3bff-4ca1-82ac-959c819e62cd
+
+	measure 'Diferencia vs presupuesto' = [Ventas] - [Presupuesto a la fecha]
+		formatString: \$#,0;(\$#,0);\$#,0
+		lineageTag: cf04477d-ec94-4d58-9e77-2a8529cf0410
+
+	measure 'Ventas año anterior' =
+			
+			VAR UltimaVenta = CALCULATE(MAX(Ventas[Fecha]), ALL(Ventas), Ventas[Venta] > 0)
+			VAR FechasConDatos =
+			    FILTER(VALUES(Calendario[Fecha]), Calendario[Fecha] <= UltimaVenta)
+			RETURN
+			    IF(
+			        HASONEVALUE(Calendario[Año]),
+			        CALCULATE([Ventas], SAMEPERIODLASTYEAR(FechasConDatos))
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: db555f28-f455-40fb-9f33-a2fb5c26fe4a
+
+	measure '% Crecimiento vs año anterior' =
+			
+			DIVIDE([Ventas] - [Ventas año anterior], [Ventas año anterior])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ff536c30-0b09-449a-aadf-3fcacd6a72e2
+
+	measure 'Ventas acumuladas' =
+			
+			IF(HASONEVALUE(Calendario[Año]), TOTALYTD([Ventas], Calendario[Fecha]))
+		lineageTag: a14bd151-b089-44cd-9e56-fd98fa18ca97
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Presupuesto acumulado' =
+			
+			IF(
+			    HASONEVALUE(Calendario[Año]),
+			    TOTALYTD([Presupuesto a la fecha], Calendario[Fecha])
+			)
+		lineageTag: f6a86e1d-c075-4d11-9614-fa1eeb9719d4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Cumplimiento acumulado' = DIVIDE([Ventas acumuladas], [Presupuesto acumulado])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 75190e54-dbe3-44c4-9824-00eac5aa3dff
+
+	measure 'Inflación del año' =
+			
+			LOOKUPVALUE('Inflación'[Inflación], 'Inflación'[Año], SELECTEDVALUE(Calendario[Año]))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: fb656b98-1e61-4615-a35e-8b51d61beb8d
+
+	measure 'Ventas reales' =
+			
+			VAR AnioBase = YEAR([Fecha de corte]) - 1
+			VAR IndiceBase =
+			    CALCULATE(AVERAGE(INPC[INPC]), REMOVEFILTERS(Calendario), Calendario[Año] = AnioBase)
+			RETURN
+			    SUMX(
+			        VALUES(Calendario[AñoMes]),
+			        DIVIDE(CALCULATE([Ventas]), CALCULATE(AVERAGE(INPC[INPC])) / IndiceBase)
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 0b5092bd-41e5-494c-a019-08e4d6658e22
+
+	measure '% Crecimiento real' =
+			
+			DIVIDE([Diferencia real vs año anterior], [Ventas reales año anterior])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: bd83ae3f-8190-4a22-9b2d-a90f5da7d304
+
+	measure '% Cumplimiento total' = ```
+			
+			   CALCULATE([% Cumplimiento], REMOVEFILTERS(Canales), REMOVEFILTERS(Turnos), REMOVEFILTERS(Ventas[Canal], Ventas[Turno]))
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 41e2351e-1932-44ea-91bf-ac8c941f03d0
+
+	measure 'Diferencia total vs presupuesto' =
+			
+			CALCULATE(
+			    [Diferencia vs presupuesto],
+			    REMOVEFILTERS(Canales), REMOVEFILTERS(Turnos),
+			    REMOVEFILTERS(Ventas[Canal], Ventas[Turno])
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: f56bf957-36bc-45ef-9845-4cbb7f4ac702
+
+	measure 'Venta no recuperada vs 2019' =
+			
+			SUMX(
+			    VALUES(Calendario[Año]),
+			    MAX(0, [Ventas reales 2019] - [Ventas reales])
+			)
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: b5b7d9e5-6100-4db1-87b5-67133d4ba267
+
+	measure 'Ventas reales 2019' =
+			
+			CALCULATE([Ventas reales], REMOVEFILTERS(Calendario), Calendario[Año] = 2019)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 358da2eb-56f3-458e-a5ec-35a5c861191c
+
+	measure 'Diferencia real vs 2019' =
+			
+			SUMX(
+			    VALUES(Calendario[Año]),
+			    [Ventas reales] - [Ventas reales 2019]
+			)
+		lineageTag: 31cea39d-c630-4d42-8011-61a63b797fdb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ventas reales mismo mes 2019' =
+			
+			CALCULATE(
+			    [Ventas reales],
+			    REMOVEFILTERS(Calendario),
+			    Calendario[Año] = 2019,
+			    VALUES(Calendario[MesNum])
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 79455cf4-6705-4126-ab5c-8ce83cb01225
+
+	measure 'Diferencia real vs mismo mes 2019' =
+			
+			SUMX(
+			    VALUES(Calendario[AñoMes]),
+			    VAR VentasMes = [Ventas reales]
+			    RETURN
+			        IF(NOT ISBLANK(VentasMes), VentasMes - [Ventas reales mismo mes 2019])
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: b8b8c2df-8ea3-484c-91f5-abb170143995
+
+	measure 'Fecha de corte' = CALCULATE(MAX(Ventas[Fecha]), ALL(Ventas), Ventas[Venta] > 0)
+		formatString: General Date
+		lineageTag: 0ee462cf-0abf-4dee-87f5-e82c87abfc6f
+
+	measure 'Ventas a la misma fecha' =
+			
+			VAR Corte = MONTH([Fecha de corte]) * 100 + DAY([Fecha de corte])
+			RETURN
+			    CALCULATE([Ventas], KEEPFILTERS(Calendario[MesDia] <= Corte))
+		lineageTag: 805fd258-5f06-418d-9195-b2b7013fb2bd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ventas reales a la misma fecha' =
+			
+			VAR Corte = MONTH([Fecha de corte]) * 100 + DAY([Fecha de corte])
+			RETURN
+			    CALCULATE([Ventas reales], KEEPFILTERS(Calendario[MesDia] <= Corte))
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 8a7b3f64-f27a-4a86-94d1-f4b7997876b2
+
+	measure 'Clientes a la misma fecha' =
+			
+			VAR Corte = MONTH([Fecha de corte]) * 100 + DAY([Fecha de corte])
+			RETURN
+			    CALCULATE([Clientes], KEEPFILTERS(Calendario[MesDia] <= Corte))
+		formatString: 0
+		lineageTag: e9e0442a-4a8c-4588-86e6-1e23f4b829ce
+
+	measure '% de la venta del año' =
+			
+			DIVIDE(
+			    [Ventas],
+			    CALCULATE([Ventas], ALLEXCEPT(Calendario, Calendario[Año]))
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 7d1f03e5-9b9d-4ee5-b14d-fc3fb6f4a881
+
+	measure '% de la venta a la misma fecha' =
+			
+			DIVIDE(
+			    [Ventas a la misma fecha],
+			    CALCULATE([Ventas a la misma fecha], ALLEXCEPT(Calendario, Calendario[Año]))
+			)
+		lineageTag: db1c5dc2-d107-4a7f-92e5-ee7b20e4b427
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Venta promedio diaria' = ```
+			
+			   DIVIDE([Ventas], CALCULATE(DISTINCTCOUNT(Ventas[Fecha]), Ventas[Venta] > 0))
+			```
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 5381f6a8-a943-40cd-bace-e9ed7c26395d
+
+	measure 'Índice estacional' = ```
+			
+			   DIVIDE(
+			       [Venta promedio diaria],
+			       CALCULATE([Venta promedio diaria], ALLEXCEPT(Calendario, Calendario[Año]))
+			   )
+			```
+		lineageTag: 36ad8f41-e7e5-4f09-9f6e-94f34dffeb08
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Índice día de la semana' =
+			
+			DIVIDE(
+			    [Venta promedio diaria],
+			    CALCULATE([Venta promedio diaria], REMOVEFILTERS(Calendario[Dia], Calendario[DiaNum]))
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: e28c2692-43a6-4c52-87d4-58e8644b69db
+
+	measure 'Clientes año anterior' =
+			
+			VAR FechasConDatos =
+			    FILTER(VALUES(Calendario[Fecha]), Calendario[Fecha] <= [Fecha de corte])
+			RETURN
+			    IF(
+			        HASONEVALUE(Calendario[Año]),
+			        CALCULATE([Clientes], SAMEPERIODLASTYEAR(FechasConDatos))
+			    )
+		formatString: 0
+		lineageTag: 65bdf616-422c-462c-a9d3-cdf775b1972a
+
+	measure '% Crecimiento clientes' =
+			
+			DIVIDE([Clientes] - [Clientes año anterior], [Clientes año anterior])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 86c9b730-52b3-4cbc-8b14-62d343faa590
+
+	measure 'Ticket promedio real' =
+			
+			DIVIDE(
+			    CALCULATE([Ventas reales], KEEPFILTERS(Canales[Canal] IN {"Salón", "Mostrador"})),
+			    [Clientes]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 88c3f94c-241e-44c7-aabf-2aa7b2650655
+
+	measure '% Cumplimiento acumulado total' = ```
+			
+			  CALCULATE([% Cumplimiento acumulado], REMOVEFILTERS(Canales), REMOVEFILTERS(Turnos),REMOVEFILTERS(Ventas[Canal], Ventas[Turno]))
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: d5c20bcf-5507-47a2-80af-9c5e3c05e0d4
+
+	measure '% vs mismo mes 2019 (real)' =
+			
+			IF(
+			    HASONEVALUE(Calendario[Año]),
+			    DIVIDE([Diferencia real vs mismo mes 2019], [Ventas reales mismo mes 2019 (a la fecha)])
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 534cf33c-a495-4482-9ad7-611c630b3149
+
+	measure 'Diferencia vs año anterior' =
+			
+			VAR VentasActual = [Ventas]
+			VAR VentasAA = [Ventas año anterior]
+			RETURN
+			    IF(
+			        NOT ISBLANK(VentasActual) && NOT ISBLANK(VentasAA),
+			        VentasActual - VentasAA
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 98e9e006-6ce3-4eaf-9c85-cdcf7fce7b54
+
+	measure 'Ventas reales año anterior' =
+			
+			VAR FechasConDatos =
+			    FILTER(VALUES(Calendario[Fecha]), Calendario[Fecha] <= [Fecha de corte])
+			RETURN
+			    IF(
+			        HASONEVALUE(Calendario[Año]),
+			        CALCULATE([Ventas reales], SAMEPERIODLASTYEAR(FechasConDatos))
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 4af186cc-3fc0-4193-8eb2-66713382f26d
+
+	measure 'Diferencia real vs año anterior' =
+			
+			VAR RealActual = [Ventas reales]
+			VAR RealAA = [Ventas reales año anterior]
+			RETURN
+			    IF(
+			        NOT ISBLANK(RealActual) && NOT ISBLANK(RealAA),
+			        RealActual - RealAA
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 9342a003-90a3-4f3a-b1f0-cb375d651860
+
+	measure 'Ventas reales mismo mes 2019 (a la fecha)' = ```
+			
+			   SUMX(
+			       VALUES(Calendario[AñoMes]),
+			       IF(NOT ISBLANK([Ventas reales]), [Ventas reales mismo mes 2019])
+			   )
+			```
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: ae5bccfe-c4ca-4267-b52d-c6e032fe4e81
+
+	measure 'Texto corte' =
+			
+			"Enero a " & FORMAT([Fecha de corte], "mmmm") & " de cada año · pesos año anterior"
+		lineageTag: b032d1d5-01d5-42d8-9da4-c09765ae1cd7
+
+	measure 'Ventas reales 2019 a la misma fecha' =
+			
+			CALCULATE([Ventas reales a la misma fecha], REMOVEFILTERS(Calendario), Calendario[Año] = 2019)
+		lineageTag: a2c26a25-a45c-410b-aaad-4f564f92d567
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Texto corte ticket' =
+			
+			"Clientes de enero a " & FORMAT([Fecha de corte], "mmmm") & " de cada año"
+		lineageTag: 298033b7-f324-417d-8ea1-c2021931e93e
+
+	measure 'Diferencia clientes vs año anterior' = ```
+			
+			VAR ClienteActual = [Clientes]
+			VAR ClienteAA = [Clientes año anterior]
+			RETURN
+			    IF(
+			        NOT ISBLANK(ClienteActual) && NOT ISBLANK(ClienteAA),
+			        ClienteActual - ClienteAA
+			    )
+			
+			```
+		formatString: 0
+		lineageTag: 390c075b-ab05-4d8c-85cc-aa7ce3e415d6
+
+	measure 'Clientes 2019' = ```
+			
+			CALCULATE([Clientes], REMOVEFILTERS(Calendario), Calendario[Año] = 2019)
+			
+			```
+		formatString: 0
+		lineageTag: a300cf79-71ee-4c10-a95c-cc664943c533
+
+	measure 'Clientes mismo mes 2019' =
+			
+			CALCULATE(
+			    [Clientes],
+			    REMOVEFILTERS(Calendario),
+			    Calendario[Año] = 2019,
+			    VALUES(Calendario[MesNum])
+			)
+		formatString: 0
+		lineageTag: 907e68e6-7e2f-48c3-be94-c61f82c89049
+
+	measure 'Diferencia clientes vs 2019' =
+			
+			SUMX(
+			    VALUES(Calendario[AñoMes]),
+			    VAR ClientesMes = [Clientes]
+			    RETURN
+			        IF(NOT ISBLANK(ClientesMes), ClientesMes - [Clientes mismo mes 2019])
+			)
+		formatString: 0
+		lineageTag: 93d58b72-6fe5-4e35-82b5-67914187ec29
+
+	measure 'Diferencia ticket real vs mismo mes 2019' =
+			
+			VAR TicketReal = [Ticket promedio real]
+			RETURN
+			    IF(NOT ISBLANK(TicketReal), TicketReal - [Ticket real mismo mes 2019])
+		formatString: \$#,0.0;(\$#,0.0);\$#,0.0
+		lineageTag: 8fb45e4e-9b47-4666-becb-b8c73534c41a
+
+	measure '% Ticket real vs mismo mes 2019' =
+			
+			VAR TicketReal = [Ticket promedio real]
+			RETURN
+			    IF(NOT ISBLANK(TicketReal), DIVIDE(TicketReal, [Ticket real mismo mes 2019]) - 1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 9006fb4c-e591-418d-934f-ca98891883c6
+
+	measure 'Ticket 2019' =
+			
+			CALCULATE([Ticket promedio], REMOVEFILTERS(Calendario), Calendario[Año] = 2019)
+		lineageTag: feca315d-bd0e-4254-babd-45819f75f691
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ticket real mismo mes 2019' =
+			
+			CALCULATE(
+			    [Ticket promedio real],
+			    REMOVEFILTERS(Calendario),
+			    Calendario[Año] = 2019,
+			    VALUES(Calendario[MesNum])
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: fa269486-7e7a-45fa-b78b-85d1de7feed1
+
+	measure Pedidos = SUM(Pedidos[Pedidos])
+		formatString: 0
+		lineageTag: 667189b8-5feb-4bb9-9077-fbb51ae5e789
+
+	measure 'Ventas apps con pedidos' =
+			
+			SUMX(
+			    VALUES(Calendario[AñoMes]),
+			    IF(
+			        NOT ISBLANK([Pedidos]),
+			        CALCULATE([Ventas], KEEPFILTERS(Canales[Canal] IN {"Uber", "Rappi"}))
+			    )
+			)
+		lineageTag: 608ad3af-941f-462d-9ad1-7be07fda39a0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ticket por pedido' = DIVIDE([Ventas apps con pedidos], [Pedidos])
+		lineageTag: cfc4a57f-ca71-4a2a-95c9-ad7d238d6ce7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Texto base' = "Pesos de " & (YEAR([Fecha de corte]) - 1)
+		lineageTag: 38bebbba-0fba-45b4-a735-9e41f18bb147
+
+	measure 'Texto periodo' =
+			
+			VAR Anio = SELECTEDVALUE(Calendario[Año])
+			VAR Meses =
+			    CONCATENATEX(
+			        SUMMARIZE(Calendario, Calendario[MesNum], Calendario[Mes]),
+			        Calendario[Mes], ", ",
+			        Calendario[MesNum], ASC
+			    )
+			RETURN
+			    IF(
+			        ISFILTERED(Calendario[Mes]),
+			        Meses & " " & Anio,
+			        IF(
+			            Anio = YEAR([Fecha de corte]),
+			            "Ene–" & FORMAT([Fecha de corte], "Mmm") & " " & Anio,
+			            "Año completo " & Anio
+			        )
+			    )
+		lineageTag: 03a97556-c363-4d0c-b2a6-e4fd7f4d6985
+
+	measure 'Titulo crecimiento' =
+			
+			"Crecimiento vs año anterior · " & [Texto periodo]
+		lineageTag: 3713030c-e91a-4ed4-ac2b-b28339a8f8de
+
+	measure 'Titulo vs 2019' =
+			
+			"Crecimiento vs 2019 · " & [Texto periodo]
+		lineageTag: 1683f199-7dec-46c4-aaae-8b6fca705464
+
+	measure 'texto dif año actual' = "Año actual vs año anterior"
+		lineageTag: e08a8f09-eea5-45fb-9d11-48adf84b8db8
+
+	measure 'texto dif 2019' = "Año actual vs 2019"
+		lineageTag: a1f31ebb-562f-4c64-ac99-8ada3ea3d276
+
+	partition Medidas = m
+		mode: import
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table
+

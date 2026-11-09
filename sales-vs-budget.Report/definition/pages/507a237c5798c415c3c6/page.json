@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "507a237c5798c415c3c6",
+  "displayName": "Mes",
+  "displayOption": "FitToPage",
+  "height": 1400,
+  "width": 1920,
+  "visualInteractions": [
+    {
+      "source": "830f4ca52871c265a6c9",
+      "target": "a73bc4401cbbe874bca6",
+      "type": "NoFilter"
+    },
+    {
+      "source": "6804fdfca3332c7a0ee0",
+      "target": "a73bc4401cbbe874bca6",
+      "type": "NoFilter"
+    },
+    {
+      "source": "6804fdfca3332c7a0ee0",
+      "target": "ac464128b49e96a70885",
+      "type": "NoFilter"
+    },
+    {
+      "source": "a73bc4401cbbe874bca6",
+      "target": "ac464128b49e96a70885",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "6804fdfca3332c7a0ee0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "db943973649619d9f559",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "ac464128b49e96a70885",
+      "type": "DataFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "3016c7eef61130f28032",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "830f4ca52871c265a6c9",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9d6e033ba9496c6c5c36",
+      "target": "a73bc4401cbbe874bca6",
+      "type": "NoFilter"
+    },
+    {
+      "source": "830f4ca52871c265a6c9",
+      "target": "9d6e033ba9496c6c5c36",
+      "type": "NoFilter"
+    },
+    {
+      "source": "3016c7eef61130f28032",
+      "target": "9d6e033ba9496c6c5c36",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3016c7eef61130f28032",
+      "target": "830f4ca52871c265a6c9",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3016c7eef61130f28032",
+      "target": "a73bc4401cbbe874bca6",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a73bc4401cbbe874bca6",
+      "target": "3016c7eef61130f28032",
+      "type": "DataFilter"
+    }
+  ]
+}

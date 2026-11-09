@@ -1,0 +1,27 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-MX
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["Ventas","Presupuesto","Inflación","Medidas","INPC","Pedidos","Canales","Turnos"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Ventas
+ref table Presupuesto
+ref table Inflación
+ref table Calendario
+ref table Medidas
+ref table INPC
+ref table Pedidos
+ref table Canales
+ref table Turnos
+
+ref cultureInfo es-ES
+

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "69e6e70a7f7c4819a1a8",
+  "displayName": "Ticket",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "visualInteractions": [
+    {
+      "source": "a0021d878cef4d959ecc",
+      "target": "c335b03b06bd97a673c8",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c6c07cb1aeea2f3eb50a",
+      "target": "b6172db8a3bda31cf425",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c6c07cb1aeea2f3eb50a",
+      "target": "9e3ddba3d9e2a6d5383a",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c6c07cb1aeea2f3eb50a",
+      "target": "0f82eb5b548ae9c45202",
+      "type": "NoFilter"
+    },
+    {
+      "source": "3c66dbbff42674717e5f",
+      "target": "0f82eb5b548ae9c45202",
+      "type": "NoFilter"
+    }
+  ]
+}

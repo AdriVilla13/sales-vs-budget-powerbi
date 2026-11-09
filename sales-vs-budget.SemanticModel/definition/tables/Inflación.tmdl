@@ -1,0 +1,55 @@
+table Inflación
+	lineageTag: d8984da4-3264-4763-aadf-a87c1ae35976
+
+	column Año
+		dataType: int64
+		formatString: 0
+		lineageTag: c239cfaf-8b47-4ccc-95c3-a07b8da54f74
+		summarizeBy: none
+		sourceColumn: Año
+
+		annotation SummarizationSetBy = User
+
+	column Inflación
+		dataType: double
+		lineageTag: be6cf26f-859e-43fe-b761-7ab8d33028e3
+		summarizeBy: none
+		sourceColumn: Inflación
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Índice base 2019' =
+			
+			VAR AnioActual = 'Inflación'[Año]
+			RETURN
+			    COALESCE(
+			        PRODUCTX(
+			            FILTER('Inflación', 'Inflación'[Año] > 2019 && 'Inflación'[Año] <= AnioActual),
+			            1 + 'Inflación'[Inflación]
+			        ),
+			        1
+			    )
+		lineageTag: b1c35a74-ea39-4378-bc28-5c23df2af70e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Inflación = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents("C:\Villi\1. GitHub\sales-vs-budget-powerbi\Presupuesto_anonimizado.xlsx"), null, true),
+				    #"Inflación general anual_Sheet" = Origen{[Item="Inflación general anual",Kind="Sheet"]}[Data],
+				    #"Encabezados promovidos" = Table.PromoteHeaders(#"Inflación general anual_Sheet", [PromoteAllScalars=true]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"Año", Int64.Type}, {"Inflación", type number}})
+				in
+				    #"Tipo cambiado"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,72 @@
+table Pedidos
+	lineageTag: 6c242a65-315c-4004-a232-a929db9b27c4
+
+	column Fecha
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cc50296c-ba31-4b3e-aff9-5cdbd9193395
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Canal
+		dataType: string
+		isHidden
+		lineageTag: b4d6386a-f67c-42d4-830e-24e90f5c08cd
+		summarizeBy: none
+		sourceColumn: Canal
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Turno
+		dataType: string
+		isHidden
+		lineageTag: a9770223-b39d-41d4-8d02-a172161e9580
+		summarizeBy: none
+		sourceColumn: Turno
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Pedidos
+		dataType: int64
+		formatString: 0
+		lineageTag: d2d56339-87a5-4a63-9cb2-cfb71e5299f8
+		summarizeBy: sum
+		sourceColumn: Pedidos
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Pedidos = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents("C:\Villi\1. GitHub\sales-vs-budget-powerbi\Ventas_anonimizado.xlsx"), null, true),
+				    #"Uber Rappi_Sheet" = Origen{[Item="Uber Rappi",Kind="Sheet"]}[Data],
+				    #"Encabezados promovidos" = Table.PromoteHeaders(#"Uber Rappi_Sheet", [PromoteAllScalars=true]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"Fecha", type date}, {"pedidos_rappi_t1", Int64.Type}, {"pedidos_rappi_t2", Int64.Type}, {"total_pedidos_rappi", Int64.Type}, {"pedidos_uber_t1", Int64.Type}, {"pedidos_uber_t2", Int64.Type}, {"total_pedidos_uber_t2", Int64.Type}}),
+				    #"Otras columnas quitadas" = Table.SelectColumns(#"Tipo cambiado",{"Fecha", "pedidos_rappi_t1", "pedidos_rappi_t2", "pedidos_uber_t1", "pedidos_uber_t2"}),
+				    #"Filas filtradas" = Table.SelectRows(#"Otras columnas quitadas", each ([Fecha] <> null)),
+				    #"Otras columnas con anulación de dinamización" = Table.UnpivotOtherColumns(#"Filas filtradas", {"Fecha"}, "Atributo", "Valor"),
+				    #"Dividir columna por delimitador" = Table.SplitColumn(#"Otras columnas con anulación de dinamización", "Atributo", Splitter.SplitTextByDelimiter("_", QuoteStyle.Csv), {"Atributo.1", "Atributo.2", "Atributo.3"}),
+				    #"Tipo cambiado1" = Table.TransformColumnTypes(#"Dividir columna por delimitador",{{"Atributo.1", type text}, {"Atributo.2", type text}, {"Atributo.3", type text}}),
+				    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Tipo cambiado1",{{"Atributo.2", "Canal"}, {"Atributo.3", "Turno"}}),
+				    #"Valor reemplazado" = Table.ReplaceValue(#"Columnas con nombre cambiado","rappi","Rappi",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado1" = Table.ReplaceValue(#"Valor reemplazado","uber","Uber",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado2" = Table.ReplaceValue(#"Valor reemplazado1","t1","Turno 1",Replacer.ReplaceValue,{"Turno"}),
+				    #"Valor reemplazado3" = Table.ReplaceValue(#"Valor reemplazado2","t2","Turno 2",Replacer.ReplaceValue,{"Turno"}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Valor reemplazado3",{"Atributo.1"}),
+				    #"Columnas con nombre cambiado1" = Table.RenameColumns(#"Columnas quitadas",{{"Valor", "Pedidos"}})
+				in
+				    #"Columnas con nombre cambiado1"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

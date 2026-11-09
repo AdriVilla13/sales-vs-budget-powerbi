@@ -1,0 +1,32 @@
+relationship 724595b8-c90d-a913-8436-afad529e79f2
+	fromColumn: Ventas.Fecha
+	toColumn: Calendario.Fecha
+
+relationship eff31a20-629f-adc8-f8ef-98bcd7790864
+	fromColumn: Presupuesto.Fecha
+	toColumn: Calendario.Fecha
+
+relationship 0bbb892f-dae5-e4d6-2c1d-08eea1f85d3e
+	fromColumn: INPC.Fecha
+	toColumn: Calendario.Fecha
+
+relationship AutoDetected_4e549558-35ca-4bfd-bd71-a0b9f702e2fa
+	fromColumn: Ventas.Canal
+	toColumn: Canales.Canal
+
+relationship AutoDetected_2a49a41e-1345-4442-983e-d238e124ebca
+	fromColumn: Pedidos.Canal
+	toColumn: Canales.Canal
+
+relationship AutoDetected_ac09a25d-b449-478e-a8b8-f7014569bcb9
+	fromColumn: Ventas.Turno
+	toColumn: Turnos.Turno
+
+relationship AutoDetected_871aaec4-7cdc-405d-a4d2-3b8a8541bf1d
+	fromColumn: Pedidos.Turno
+	toColumn: Turnos.Turno
+
+relationship c290dbdd-7a7c-9014-6e6c-0ba3f4d98a0a
+	fromColumn: Pedidos.Fecha
+	toColumn: Calendario.Fecha
+

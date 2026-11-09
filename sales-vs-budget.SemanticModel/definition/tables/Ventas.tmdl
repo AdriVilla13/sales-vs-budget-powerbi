@@ -1,0 +1,86 @@
+table Ventas
+	lineageTag: 5b71ed9d-3fe5-4d18-bc25-e9f9dd4085d4
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 820eafa3-8535-42cc-8b43-f0e0c3e80e8a
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Canal
+		dataType: string
+		isHidden
+		lineageTag: 7c8b34a8-81a4-4353-af7a-fd9b4e0769c2
+		summarizeBy: none
+		sourceColumn: Canal
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Turno
+		dataType: string
+		isHidden
+		lineageTag: d294d2f0-bdef-4063-ad1b-6a8415e2ac7e
+		summarizeBy: none
+		sourceColumn: Turno
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Clientes
+		dataType: int64
+		formatString: 0
+		lineageTag: 658d2bbb-66bf-400c-855b-a39b81ed0ae7
+		summarizeBy: sum
+		sourceColumn: Clientes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Venta
+		dataType: double
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 24856c98-a58b-48e7-abdb-fbbff89d5363
+		summarizeBy: sum
+		sourceColumn: Venta
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Ventas = m
+		mode: import
+		source =
+				let
+				    Origen = Excel.Workbook(File.Contents("C:\Villi\1. GitHub\sales-vs-budget-powerbi\Ventas_anonimizado.xlsx"), null, true),
+				    Hoja1_Sheet = Origen{[Item="Ventas",Kind="Sheet"]}[Data],
+				    #"Encabezados promovidos" = Table.PromoteHeaders(Hoja1_Sheet, [PromoteAllScalars=true]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"dia", type date}, {"clientes_salon_t1", Int64.Type}, {"clientes_calle_t1", Int64.Type}, {"clientes_salon_t2", Int64.Type}, {"clientes_calle_t2", Int64.Type}, {"venta_rapi_t1", Int64.Type}, {"venta_rapi_t2", Int64.Type}, {"venta_uber_t1", Int64.Type}, {"venta_uber_t2", Int64.Type}, {"venta_salon_t1", type number}, {"venta_salon_t2", type number}, {"venta_calle_t1", type number}, {"venta_calle_t2", type number}}),
+				    #"Otras columnas con anulación de dinamización" = Table.UnpivotOtherColumns(#"Tipo cambiado", {"dia"}, "Atributo", "Valor"),
+				    #"Dividir columna por delimitador" = Table.SplitColumn(#"Otras columnas con anulación de dinamización", "Atributo", Splitter.SplitTextByDelimiter("_", QuoteStyle.Csv), {"Atributo.1", "Atributo.2", "Atributo.3"}),
+				    #"Tipo cambiado1" = Table.TransformColumnTypes(#"Dividir columna por delimitador",{{"Atributo.1", type text}, {"Atributo.2", type text}, {"Atributo.3", type text}}),
+				    #"Columnas con nombre cambiado" = Table.RenameColumns(#"Tipo cambiado1",{{"Atributo.1", "Métrica"}, {"Atributo.2", "Canal"}, {"Atributo.3", "Turno"}}),
+				    #"Valor reemplazado" = Table.ReplaceValue(#"Columnas con nombre cambiado","t1","Turno 1",Replacer.ReplaceValue,{"Turno"}),
+				    #"Valor reemplazado1" = Table.ReplaceValue(#"Valor reemplazado","t2","Turno 2",Replacer.ReplaceValue,{"Turno"}),
+				    #"Valor reemplazado3" = Table.ReplaceValue(#"Valor reemplazado1","salon","Salón",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado4" = Table.ReplaceValue(#"Valor reemplazado3","calle","Mostrador",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado5" = Table.ReplaceValue(#"Valor reemplazado4","rapi","Rappi",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado6" = Table.ReplaceValue(#"Valor reemplazado5","uber","Uber",Replacer.ReplaceValue,{"Canal"}),
+				    #"Valor reemplazado8" = Table.ReplaceValue(#"Valor reemplazado6","clientes","Clientes",Replacer.ReplaceText,{"Métrica"}),
+				    #"Valor reemplazado9" = Table.ReplaceValue(#"Valor reemplazado8","venta","Venta",Replacer.ReplaceText,{"Métrica"}),
+				    #"Columna dinamizada" = Table.Pivot(#"Valor reemplazado9", List.Distinct(#"Valor reemplazado9"[Métrica]), "Métrica", "Valor"),
+				    #"Columnas con nombre cambiado1" = Table.RenameColumns(#"Columna dinamizada",{{"dia", "Fecha"}}),
+				    #"Tipo cambiado2" = Table.TransformColumnTypes(#"Columnas con nombre cambiado1",{{"Venta", type number}, {"Clientes", Int64.Type}})
+				in
+				    #"Tipo cambiado2"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

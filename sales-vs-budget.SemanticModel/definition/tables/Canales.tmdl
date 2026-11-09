@@ -1,0 +1,25 @@
+table Canales
+	lineageTag: d6e52b8d-9001-49c8-8bc0-464271a19d86
+
+	column Canal
+		dataType: string
+		lineageTag: 3d13e26f-e9ac-4a76-a3f4-36321044c4b6
+		summarizeBy: none
+		sourceColumn: Canal
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Canales = m
+		mode: import
+		source =
+				let
+				    Origen = Ventas,
+				    #"Otras columnas quitadas" = Table.SelectColumns(Origen,{"Canal"}),
+				    #"Duplicados quitados" = Table.Distinct(#"Otras columnas quitadas")
+				in
+				    #"Duplicados quitados"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

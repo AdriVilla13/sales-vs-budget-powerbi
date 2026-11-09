@@ -1,0 +1,139 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Inflación",
+          "nodeLineageTag": "d8984da4-3264-4763-aadf-a87c1ae35976",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 178.75,
+            "y": 625.625
+          },
+          "nodeIndex": "Presupuesto",
+          "nodeLineageTag": "ba982dbb-d5bf-4642-8413-9a4fb357c179",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 282.5,
+            "y": 0
+          },
+          "nodeIndex": "Ventas",
+          "nodeLineageTag": "5b71ed9d-3fe5-4d18-bc25-e9f9dd4085d4",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 285.25,
+            "y": 306.375
+          },
+          "nodeIndex": "Calendario",
+          "nodeLineageTag": "bd426cdd-cfc2-44d2-91ad-8b1e04c5f424",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 168.375
+          },
+          "nodeIndex": "Medidas",
+          "nodeLineageTag": "dd55452b-512f-432b-ba5e-fee46d277f58",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 447.54999542236328,
+            "y": 608.75
+          },
+          "nodeIndex": "INPC",
+          "nodeLineageTag": "ee3f3693-76d4-4139-a613-5f6151dd800d",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 810.75,
+            "y": 380.0625
+          },
+          "nodeIndex": "Pedidos",
+          "nodeLineageTag": "6c242a65-315c-4004-a232-a929db9b27c4",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 631,
+            "y": 216.0625
+          },
+          "nodeIndex": "Canales",
+          "nodeLineageTag": "d6e52b8d-9001-49c8-8bc0-464271a19d86",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 826.99999809265137,
+            "y": 0
+          },
+          "nodeIndex": "Turnos",
+          "nodeLineageTag": "61266f4c-d750-4d20-805c-91e44ddcc2e5",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 80,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}
